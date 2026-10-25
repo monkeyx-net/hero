@@ -1,0 +1,27 @@
+# Original copyrighted media — never commit
+H.E.R.O. (USA).a26
+*.tap
+*.t64
+*.prg
+*.d64
+*.a26
+
+# Anything decoded from the originals (copyrighted data)
+extracted/
+*.bin
+
+# CMake build dirs (build, build-web, build-san, ...)
+/build*/
+
+# OS and editor leftovers
+.DS_Store
+.claude/
+.env*
+.vscode/
+.idea/
+__pycache__/
+
+# ad-hoc screenshots / audio in the repo root
+/*.png
+/*.bmp
+/*.wav

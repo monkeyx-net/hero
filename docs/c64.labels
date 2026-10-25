@@ -1,0 +1,173 @@
+# Labels/annotations for dis6502 (-l docs/c64.labels).
+# Format: ADDR NAME [; comment]   or   ADDR-END .data NAME [; comment]
+# Addresses refer to the decrypted image (extracted/c64mem.bin).
+
+# ---- loader / protection (tape only, not part of the game) ----
+0FCA prot_wipe          ; RESTORE/NMI + tamper handler: wipes $1000-$FFFF
+0FE8 prot_decrypt       ; k += step; mem ^= k for X pages at ($FB)
+1000 loader_entry       ; SYS 4096: decrypt $1100 page, RTS into it
+1100 loader_stage2      ; decrypt $1A00-$1DFF, LOAD game, decrypt $7E00/$8000, JMP $7E00
+1A00 loader_screen      ; loading screen setup
+7E00 prot_stage3        ; self-decrypting check: device $BA=1, PLAY sense, no drives 8-15
+7F8C-7FD3 .data prot_msg ; "DISCONNECT ANY OTHER PERIPHERALS EXCEPT CASSETTE UNIT AND RELOAD."
+
+# ---- game (cartridge-style image $8000-$BFFF) ----
+8000-8008 .data cbm80_header ; cold/warm vectors -> $8009, "CBM80"
+8009 game_cold_start    ; S=$FF, NMI->$90DB, CIA IRQs off, clear ZP/screen
+8169 init_sub_8169
+8290 build_sprites      ; expand 1-bit shapes from ($22) into MC sprites at ($24), 64 B each
+82BC build_one_sprite
+8CFD copy_7_every_3     ; copies 7 bytes into every 3rd byte (sprite column fill)
+90DB nmi_handler        ; RESTORE key handling
+97CB irq_main           ; raster IRQ: ECM colour splits, bottom-row split, then ALL game logic
+9882 irq_logic          ; per-frame game update calls start here
+9E9B wait_5_frames
+9EA4 wait_frame         ; $4D = 1, wait until IRQ clears it
+9EAD wait_x_times_5
+
+# ---- main loop / timers ----
+8154 main_loop          ; JSR 877A,91AD,8339,8F75,98ED,9A83 forever
+8339 timers_run         ; $0820 table: 8 x [reload, count, lo, hi]; count==0 -> reload + JMP (cb), returns to $8369
+836E timers_tick        ; IRQ: decrement each nonzero count
+85D5 unk_85D5
+8A6E timer_cb_8A6E
+8A9A timer_cb_8A9A
+9A22 timer_cb_9A22
+9A33 timer_cb_9A33
+9A5D timer_cb_9A5D
+9F44 timer_cb_9F44
+9F45 timer_cb_9F45
+8B45 timer_cb_8B45      ; cycle chars $38-$3F in row $0680 (animated band)
+9F4F unk_9F4F
+9F62-9F81 .data timer_init ; copied to $0820 at cold start
+
+# ---- routines translated in src/hero_*.c (generated from the C comments) ----
+8206 s8206 ; shift next flag bit out of $2C into VIC register $D000+Y (mask $2A/$2B)
+8218 s8218 ; set up X sprites starting at A from consecutive 9-byte records at ($22)
+8236 s8236 ; (IRQ) step sprite animations: $0800+4n = [speed, count, frames, base]
+82F7 s82F7 ; expand $2A rows of 1-bit pixels into 2-bit pixels of colour $2B
+8384 s8384 ; silence all SID registers
+83B5 s83B5 ; wall destroyed / dynamite count
+83DB s83DB ; laser starts burning a wall
+8401 s8401 ; dynamite lit
+8427 s8427 ; (IRQ) flying noise filter wobble
+8445 s8445 ; (IRQ) laser sound while sprite 3 is on
+8490 s8490 ; volume up, voice 2 preset
+84A8 s84A8 ; (IRQ) propeller sound pulses
+84D7 s84D7 ; wait for raster line >= $FB
+84DF s84DF ; game/attract start: level 0
+84EE s84EE ; next level (levels 13-20 repeat after 20, PRO mode picks at random)
+8515 s8515 ; start the level in $58
+85A1 s85A1 ; draw POWER label and empty bar, colours, score, bottom row
+85F5 s85F5 ; draw lives ($98 / 2 hero icons)
+8631 s8631 ; clear dynamite icons, then $863F
+863F s863F ; draw dynamite icons ($99 / 2)
+865E s865E ; power -1, when it runs out lose a life and restart the level
+867B s867B ; draw the power bar (32 chars, 4 steps per char)
+86AB s86AB ; add BCD (X:A) to the score, extra life every 20000, redraw
+86ED s86ED ; draw the 6-digit score (2 chars per digit, leading zeros blank)
+8734 s8734 ; "LEVEL:" + number (or PRO)
+873E s873E
+8775 s8775 ; request screen redraw
+877A s877A ; (main) build the current screen if a redraw was requested
+886C s886C ; draw one rock band (5 char rows) at ($22), X = band 0..2
+8906 s8906 ; next 8 columns from byte $2D, alternating mirror
+891A s891A ; top row details on the first screen
+8940 s8940 ; remember entry state when moving to screen A ($2A = old screen)
+8987 s8987 ; restore the saved state of a revisited screen
+89BD s89BD ; miner (sprite 7) on the level's last screen
+8A14 s8A14 ; raft / moving platform (sprite 6) on some deep screens
+8AFB s8AFB ; fill the band row ($0680) with animated chars $38-$3F, colour it
+8B59 s8B59 ; row 0 edge decoration above solid rock in row 1
+8B86 s8B86 ; colour row 0 with $59
+8B91 s8B91 ; levels 14+: flashing wall flag
+8BB4 s8BB4 ; (IRQ) animate the flashing wall
+8BCD s8BCD ; draw the flashing wall pattern A at $04F0
+8BE3 s8BE3 ; enemies (sprites 4, 5) and lantern (sprite 6) for this screen
+8C3D s8C3D ; enemy record pointer for type A & 3 -> X/Y
+8C5F s8C5F ; (IRQ) move enemies every other frame
+8CAA s8CAA ; move enemy X (0/2) by frame A, phase Y
+8CF5 s8CF5 ; Y += $10 (faster movement table on later levels)
+8D23 s8D23 ; fetch the screen description for level $58 screen $57
+8DC8 s8DC8 ; Y = level start index + screen
+8DD2 s8DD2 ; colour the middle band (2 = water/lava screens, else $59)
+8DDE s8DDE ; draw byte A as two 4-column nibbles (mirrored when $6F bit 7)
+8DFA s8DFA ; empty nibble
+8DFC s8DFC ; draw nibble A as 4 columns x 5 rows at ($22)+Y
+8E1A s8E1A ; one column of 5 chars from the pattern tables
+8E45 s8E45 ; draw the destructible wall (A: $FF = full, $0F = burning, 0 = gone)
+8E90 s8E90 ; fill colour rows 6-10 ($D8F0-$D9B7) with A
+8E9A s8E9A ; colour the three bands (X = rock colour), dark when lights are out
+8EDD s8EDD ; fill ($22)+1..$C8 with A
+8EE5 s8EE5 ; lights out on a water/lava screen: darken the empty middle cells
+8F0B s8F0B ; colour the 2x5 wall cells at column $2B
+8F37 s8F37 ; sprite colours (all dark grey when the lights are out)
+8F5C s8F5C ; (IRQ) read both joysticks, accept a value when stable for 2 reads
+8F75 s8F75 ; (main) dispatch joystick changes to the handlers in ($85)/($87)
+8F8E s8F8E ; direction changed -> $24 = direction code, call ($85)
+8FC0 s8FC0 ; fire changed -> $24 = 1 pressed / $FF released, call ($87)
+8FE8 s8FE8 ; direction handler: set dx/dy ($89/$8A), facing, then dynamite check
+9033 s9033 ; fire handler: laser (sprite 3) on while fire is held
+90A9 s90A9 ; scan keyboard columns 7 and 0 into $AE/$AF (edge detected)
+90CE s90CE
+9103 s9103 ; (IRQ) attract mode joystick from the per-screen demo table
+9162 s9162 ; (IRQ) blank the screen after a long idle time
+91AD s91AD ; (main) F1 pressed: start a new game
+91DD s91DD ; (IRQ) attract mode: cycle the bottom text row every $B4 frames
+9207 s9207 ; bottom row back to the logo
+9231 s9231 ; (IRQ) laser length / burning through the destructible wall
+92E3 s92E3 ; |wall column - hero column| -> A ($2A keeps the signed difference)
+9300 s9300 ; pushing down while standing: light a stick of dynamite
+937C s937C ; (timer) dynamite explodes
+93A4 s93A4 ; (timer) explosion flash, then damage
+93EE s93EE ; (timer) clear sprite 7 and park it
+9408 s9408 ; sprite 7 X = $C0 (off to the side)
+9412 s9412 ; clear timer 2 and sprite 7
+942D s942D ; explosion next to the wall destroys it
+944B s944B ; explosion next to the hero kills him
+9498 s9498 ; finish a pending dynamite sequence immediately (screen change/death)
+94C4 s94C4 ; (IRQ) propeller: spin up while pushing up, spin down otherwise
+9524 s9524 ; (IRQ) hero physics
+9539 s9539 ; horizontal move, undone on collision
+9563 s9563 ; vertical move, on collision snap back and halve the speed
+9598 s9598 ; fixed point step: ($22 frac, $23 int) += sign-extended Y << 5
+95AE s95AE ; leaving the screen edge moves to the neighbouring screen
+9619 s9619 ; standing on a floor row? -> $96
+9632 s9632 ; hero animation state from (in air, facing, moving)
+967A s967A ; copy sprite shadows $3C-$4C to VIC $D000-$D010
+9685 s9685 ; (IRQ) attach propeller (0), legs (2) and laser (3) to the hero
+96A9 s96A9 ; test the hero's 4 corners against the map -> $83 (solid), $84 (deadly)
+96D2 s96D2 ; char at pixel (x/2 = $26, y = A) -> $26
+970B s970B ; classify char $26: $0D-$37 solid -> $83, $2B-$37 deadly -> $84
+9734 s9734 ; raster $AF - colour of the band row ($79), next IRQ at $B6
+975F s975F ; raster $B6 - status panel: multicolour text, copy sprite shadows
+97AC s97AC ; install the IRQ chain
+98ED s98ED ; (main) react to sprite-sprite collisions ($D01E masked by $80)
+9912 s9912 ; which object was hit
+99A0 s99A0 ; enemy X (4/5) touched (A = collision bits)
+9A44 s9A44 ; tentacle retracts when the hero is close
+9A6A s9A6A ; |hero X - sprite X|
+9A75 s9A75 ; hero X/2 - sprite(X) X/2
+9A83 s9A83 ; (main) deaths, lantern/raft events, game over
+9B1D s9B1D ; hero dies: freeze, death frames, sound, cancel dynamite
+9B61 s9B61 ; die and wait 60 frames
+9B6A s9B6A ; hero drops in from the top of the screen
+9BDC s9BDC ; clear collision latches and event flags
+9BEC s9BEC ; reset movement and wait for joystick bits A
+9C0B s9C0B ; miner rescued: count power and dynamite into the score, next level
+9C93 s9C93 ; shade the rock edges (7 passes from the table at $9CD3/$9CE1)
+9D40 s9D40 ; one pass over $2E rows of 40 cells
+9D76 s9D76 ; solid cell: pick an edge char depending on neighbours
+9DA5 s9DA5 ; empty cell: random dust char, edge below
+9DD1 s9DD1 ; walls between bands (4 passes from the table at $9DFB)
+9E03 s9E03
+9E8B s9E8B ; X = ((raster ROR 3) ^ Y) & X - cheap random from the beam position
+9EB4 s9EB4 ; per-frame: decrement frame counter $A4 and the countdowns $4D-$50
+9EC5 s9EC5 ; copy word at ($22),Y to $22+X/$23+X, Y += 2, A = lo | hi
+9ED2 s9ED2 ; clear Y bytes at ($24)
+9EF5 s9EF5 ; store $29 as sprite Y, then $9EF9
+9EF9 s9EF9 ; store $28 (X/2 + MSB flag) as sprite X for shadow index X
+9F13 s9F13 ; 16-bit add: word $22+X += word $22+Y
+9F23 s9F23 ; sign-extend byte $22+X into $23+X
+9F2E s9F2E ; word $22+X <<= Y
+9F39 s9F39 ; shift the 8 bits of A (LSB first) into $2A, A = $2A (bit reverse)

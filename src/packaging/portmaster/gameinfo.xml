@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gameList>
+  <game>
+    <path>./HERO.sh</path>
+    <name>H.E.R.O.</name>
+    <desc>A native SDL2 port of the Commodore 64 version of Activision's H.E.R.O. (work in progress). Needs your own C64 tape image H.E.R.O.tap in ports/hero/. Converted by monkeyx.</desc>
+    <releasedate>19840101T000000</releasedate>
+    <developer>Activision</developer>
+    <publisher>Activision</publisher>
+    <genre>Action</genre>
+    <image>./hero/screenshot.png</image>
+  </game>
+</gameList>

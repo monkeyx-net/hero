@@ -1,0 +1,6 @@
+# Replay regression scripts: name | frames | --keys | --input
+# `make replay` runs each and compares with tests/replay.expected
+attract   | 3000 | | 
+level1    | 2500 | 400:f1 | 470:d,480:,520:r,560:rf,620:,640:u,660:ur,700:r,760:f,800:d,830:,900:l,1000:lu,1100:,1500:ru,1800:f,2000:
+level5    | 2500 | 200:f3,400:f1 | 470:r,520:rf,600:u,700:ul,800:d,820:,900:rf,1200:u,1400:l,1600:d,1620:,1800:rf
+pro       | 2500 | 200:f3,240:f3,280:f3,320:f3,400:f1 | 470:d,480:,520:lf,700:u,900:r,1100:uf,1300:d,1310:,1500:l

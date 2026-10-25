@@ -1,0 +1,34 @@
+{
+    "version": 4,
+    "name": "hero.zip",
+    "items": [
+        "HERO.sh",
+        "hero"
+    ],
+    "items_opt": [],
+    "attr": {
+        "title": "H.E.R.O.",
+        "porter": [
+            "monkeyx-net"
+        ],
+        "desc": "A native SDL2 port of the Commodore 64 version of Activision's H.E.R.O. (1984), checked routine by routine against the original 6502 code. Work in progress. Converted by monkeyx.",
+        "desc_md": null,
+        "inst": "Copy your own C64 tape image H.E.R.O.tap into ports/hero/.",
+        "inst_md": null,
+        "genres": [
+            "action", "platformer"
+        ],
+        "image": null,
+        "rtr": false,
+        "exp": true,
+        "runtime": [],
+        "store": [],
+        "availability": "full",
+        "reqs": [],
+        "arch": [
+            "aarch64",
+            "x86_64"
+        ],
+        "min_glibc": "2.31"
+    }
+}

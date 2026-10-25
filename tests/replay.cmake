@@ -1,0 +1,42 @@
+# Replay regression: run every script in tests/replay.txt headless and compare
+# the RAM hashes with tests/replay.expected.
+#   cmake -DHERO=<hero binary> -DTAP=<H.E.R.O.tap> -DSRC=<repo> [-DUPDATE=ON] -P replay.cmake
+foreach(v HERO TAP SRC)
+  if(NOT DEFINED ${v})
+    message(FATAL_ERROR "replay.cmake: ${v} not set")
+  endif()
+endforeach()
+
+file(STRINGS "${SRC}/tests/replay.txt" lines)
+set(out "")
+foreach(line IN LISTS lines)
+  if(line MATCHES "^#" OR line STREQUAL "")
+    continue()
+  endif()
+  string(REPLACE "|" ";" f "${line}")
+  list(GET f 0 name)
+  list(GET f 1 frames)
+  list(GET f 2 keys)
+  list(GET f 3 input)
+  foreach(x name frames keys input)
+    string(STRIP "${${x}}" ${x})
+  endforeach()
+  execute_process(COMMAND "${HERO}" --tap "${TAP}" --frames ${frames} --keys "${keys}" --input "${input}" --hash
+                  OUTPUT_VARIABLE res RESULT_VARIABLE rc OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if(NOT rc EQUAL 0)
+    message(FATAL_ERROR "replay ${name}: hero exited with ${rc}")
+  endif()
+  string(APPEND out "${name} ${res}\n")
+endforeach()
+
+if(UPDATE)
+  file(WRITE "${SRC}/tests/replay.expected" "${out}")
+  message(STATUS "updated tests/replay.expected:\n${out}")
+  return()
+endif()
+file(READ "${SRC}/tests/replay.expected" expected)
+if(NOT out STREQUAL expected)
+  message(FATAL_ERROR "replay changed.\nexpected:\n${expected}\ngot:\n${out}"
+                      "If the change is intended: cmake --build build --target replay_update")
+endif()
+message(STATUS "replay: OK")

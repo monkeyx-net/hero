@@ -1,0 +1,22 @@
+H.E.R.O. native SDL2 port (Commodore 64 version)
+Copyright 2026 monkeyx-net
+
+The source code of this project is licensed under the Apache License,
+Version 2.0 (see LICENSE).
+
+THIRD-PARTY MATERIAL NOT COVERED BY THAT LICENSE
+
+H.E.R.O. (1984) was designed by John Van Ryzin and published by Activision;
+the Commodore 64 version was adapted by The Softworks. The game, its
+program, artwork, sounds and data, and the H.E.R.O. and ACTIVISION
+trademarks belong to their current rights holders.
+
+The game logic in src/hero_*.c is a translation of the original program
+for interoperability; it reads all of the game's data (graphics, levels,
+sound tables) from the player's own tape image at run time. This project
+contains and distributes no tape images and no data, graphics or sounds
+taken from them, and no Commodore ROMs (the one text row drawn with the C64
+character ROM uses an original lookalike font).
+
+This project is not affiliated with or endorsed by Activision, The
+Softworks, Commodore or any successor.
