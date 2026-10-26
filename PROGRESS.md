@@ -150,3 +150,6 @@ Last updated: 2026-10-25
   upload only new frames, play-area crop, Star Force's integer/sharp-bilinear
   fit (checked at 640x480, 720x720, 960x544, 1280x720), software renderer
   fallback, pacing when vsync is missing.
+- 2026-10-25 — v0.1.0 released by CI (all platforms green). v0.1.1 prepared:
+  `HERO_PACKAGE_TAP` for personal packages with the tape (`-with-tape`), README
+  section with the package and web commands.

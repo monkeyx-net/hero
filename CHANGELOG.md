@@ -3,6 +3,16 @@
 ---
 ## Changelog
 
+### v0.1.1 (2026-10-25)
+
+#### Port
+
+- **Builds with your own tape** — `-DHERO_PACKAGE_TAP=/path/to/H.E.R.O.tap`
+  puts the tape next to the program in every package (`-with-tape` in the
+  archive name), and `-DHERO_WEB_TAP` bundles it into a local web page; for
+  your own devices only, never published (README, "Builds that include your
+  tape").
+
 ### v0.1.0 (2026-10-25)
 
 #### Game

@@ -3,7 +3,8 @@
 #         -DARCH=<x86_64|aarch64|arm64> -DVERSION=<x.y.z> -P package.cmake
 # Archives land in <build dir>/packages/. Windows packages also take every DLL
 # next to the binary (copy SDL2.dll there first). No game data is packaged:
-# players supply their own H.E.R.O.tap.
+# players supply their own H.E.R.O.tap - unless -DTAP=<file> is given, which
+# puts that tape in the archive (named "-with-tape") for personal use only.
 foreach(v KIND SRC BIN GAME ARCH VERSION)
   if(NOT DEFINED ${v})
     message(FATAL_ERROR "package.cmake: ${v} not set")
@@ -12,6 +13,14 @@ endforeach()
 
 if(ARCH MATCHES "^(AMD64|)$")
   set(ARCH x86_64)  # Windows calls it AMD64; MinGW cross builds leave it empty
+endif()
+
+set(suffix "")
+if(DEFINED TAP AND NOT TAP STREQUAL "")
+  if(NOT EXISTS "${TAP}")
+    message(FATAL_ERROR "package.cmake: tape ${TAP} not found")
+  endif()
+  set(suffix "-with-tape")
 endif()
 
 set(out "${BIN}/packages")
@@ -47,13 +56,17 @@ if(KIND STREQUAL "windows")
 endif()
 file(COPY "${SRC}/NOTICE" "${SRC}/LICENSE" DESTINATION "${root}")
 file(COPY "${SRC}/src/packaging/README-native.txt" DESTINATION "${root}")
+if(suffix)  # the user's own tape, found next to the program (and by HERO.sh)
+  configure_file("${TAP}" "${root}/H.E.R.O.tap" COPYONLY)
+  message(WARNING "${KIND} package includes your tape: for your own devices only, do not publish it")
+endif()
 
 if(KIND STREQUAL "linux" OR KIND STREQUAL "macos")
-  set(archive "${out}/hero-${VERSION}-${KIND}-${ARCH}.tar.gz")
+  set(archive "${out}/hero-${VERSION}-${KIND}-${ARCH}${suffix}.tar.gz")
   execute_process(COMMAND "${CMAKE_COMMAND}" -E tar czf "${archive}" "hero-${VERSION}-${KIND}-${ARCH}"
                   WORKING_DIRECTORY "${stage}" RESULT_VARIABLE rc)
 elseif(KIND STREQUAL "windows")
-  set(archive "${out}/hero-${VERSION}-windows-${ARCH}.zip")
+  set(archive "${out}/hero-${VERSION}-windows-${ARCH}${suffix}.zip")
   execute_process(COMMAND "${CMAKE_COMMAND}" -E tar cf "${archive}" --format=zip "hero-${VERSION}-windows-${ARCH}"
                   WORKING_DIRECTORY "${stage}" RESULT_VARIABLE rc)
 else()
@@ -67,7 +80,7 @@ else()
   if(NOT shot_rc EQUAL 0)
     message(WARNING "could not render the PortMaster screenshot")
   endif()
-  set(archive "${out}/hero-${VERSION}-portmaster-${ARCH}.zip")
+  set(archive "${out}/hero-${VERSION}-portmaster-${ARCH}${suffix}.zip")
   execute_process(COMMAND "${CMAKE_COMMAND}" -E tar cf "${archive}" --format=zip "HERO.sh" hero
                   WORKING_DIRECTORY "${stage}" RESULT_VARIABLE rc)
 endif()

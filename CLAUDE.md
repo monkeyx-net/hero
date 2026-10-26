@@ -135,8 +135,9 @@ caller depends on them.
 Bump the version in **both** `CMakeLists.txt` (`project(hero VERSION x.y.z)`)
 and the first `### vX.Y.Z (date)` heading of `CHANGELOG.md`; CI refuses a
 mismatch and publishes a GitHub release for each new version pushed to main.
-Release builds use `-DHERO_DEV_DATA=OFF`. Never bundle the tape (the web
-target's `HERO_WEB_TAP` is for local testing only).
+Release builds use `-DHERO_DEV_DATA=OFF`. Never bundle the tape in anything
+published: `HERO_PACKAGE_TAP` (packages, named `-with-tape`) and `HERO_WEB_TAP`
+(web) exist for the user's own devices only.
 
 ## Machine notes
 

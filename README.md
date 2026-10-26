@@ -71,6 +71,25 @@ cmake --build build --target package_linux package_portmaster
 emcmake cmake -S . -B build-web && cmake --build build-web --target serve
 ```
 
+### Builds that include your tape (personal use only)
+
+Release builds never contain the game: players add their own `H.E.R.O.tap`.
+For your own devices you can build archives and a web page with your tape
+already inside. They are named `-with-tape` (the web page bundles it into
+`index.data`). **Do not publish or share them.**
+
+```bash
+# packages with the tape next to the program (Linux tarball, PortMaster zip, ...)
+cmake -S . -B build-mine -DHERO_DEV_DATA=OFF -DHERO_PACKAGE_TAP=/path/to/H.E.R.O.tap
+cmake --build build-mine -j --target package_linux package_portmaster
+#   -> build-mine/packages/hero-0.1.1-linux-x86_64-with-tape.tar.gz
+#      build-mine/packages/hero-0.1.1-portmaster-x86_64-with-tape.zip
+
+# web page that starts straight into the game, served on http://localhost:8000/
+emcmake cmake -S . -B build-web-mine -DHERO_WEB_TAP=/path/to/H.E.R.O.tap
+cmake --build build-web-mine --target serve
+```
+
 With the tape in the source folder the build also offers the development
 targets `image` (the decrypted program), `disasm` (labelled disassembly)
 and `run-ref` (the original game on the reference C64 model), and
